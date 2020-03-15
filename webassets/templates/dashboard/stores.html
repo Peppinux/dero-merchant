@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{template "head" "My Stores"}}
+    
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    {{template "header" .}}
+
+    <div class="container-fluid">
+        <div class="row">
+            {{template "sidebar" .}}
+
+            <div class="col-lg-10 col-md-9 col-sm-8 col-10">
+                <div class="card dashboard-page-card">
+                    <div class="card-body">
+                        <h1 class="card-title">My Stores</h1>
+
+                        <p class="card-text">
+                            <div class="container-fluid card-content">
+                                <div class="row">
+                                    {{range $id, $title := .Stores}}
+                                        <div class="col-lg-3">
+                                            <div class="card mb-4 text-center">
+                                                <div class="card-body">
+                                                    <h3 class="card-title h5">{{$title}}</h3>
+                                                    <a href="/dashboard/stores/view/{{$id}}" class="btn btn-sm btn-outline-primary m-1">Show details</a>
+                                                    <a href="/dashboard/stores/view/{{$id}}/payments" class="btn btn-sm btn-outline-primary m-1">Show payments</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {{end}}
+                                    <div class="col-lg-3">
+                                        <a href="/dashboard/stores/add" style="text-decoration: none !important;">
+                                            <div class="card mb-4 text-center bg-success text-white">
+                                                <div class="card-body">
+                                                    <h3 class="card-title h5">Add store</h3>
+                                                    <i class="fas fa-plus-circle"></i>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{template "bootstrapDeps"}}
+</body>
+</html>

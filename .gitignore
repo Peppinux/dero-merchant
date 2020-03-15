@@ -1,0 +1,24 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+/.env
+/docker-compose-databases/docker-compose.yml
+/docker-compose-databases/postgres/data/*
+/run.sh
+/test.sh
+/dero-merchant
+/logs/
+/wallets/
+/test_wallets/
+/coverage.out
+/TODO.txt

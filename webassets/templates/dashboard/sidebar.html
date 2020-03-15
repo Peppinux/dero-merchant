@@ -1,0 +1,70 @@
+{{define "sidebar"}}
+    <nav class="sidebar col-lg-2 col-md-3 col-sm-4 col-2 navbar navbar-dark bg-primary sticky-top px-0 flex-column align-items-start justify-content-start flex-nowrap overflow-auto shadow">
+        <a class="navbar-brand mx-auto" href="/dashboard"><i class="fas fa-home"></i> <span class="d-none d-sm-inline">Dashboard</span></a>
+        
+        <ul class="navbar-nav w-100 d-none d-sm-flex">
+            <li class="nav-item">
+                <a class="nav-link" href="/dashboard/account"><i class="fas fa-user"></i> My Account</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between pr-2" data-toggle="collapse" href="#stores-list" role="button" aria-expanded="true" aria-controls="stores-list"><span><i class="fas fa-store"></i> My Stores</span></a>
+            </li>
+        </ul>
+        <div class="d-none d-sm-block w-100">
+            <ul class="navbar-nav w-100 collapse show" id="stores-list">
+                {{range $id, $title := .Stores}}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/stores/view/{{$id}}">{{$title}}</a>
+                    </li>
+                    <li class="nav-item d-none payments-item">
+                        <a class="nav-link" href="/dashboard/stores/view/{{$id}}/payments"><i class="fas fa-receipt"></i> Payments</a>
+                    </li>
+                {{end}}
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard/stores/add"><i class="fas fa-plus-circle"></i> Add store</a>
+                </li>
+            </ul>
+        </div>
+
+        <ul class="navbar-nav w-100 d-flex d-sm-none text-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard/account" title="My Account"><i class="fas fa-user"></i></a>
+                </li>
+                    
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard/stores" title="My Stores"><i class="fas fa-store"></i></a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard/stores/add" title="Add Store"><i class="fas fa-plus-circle"></i></a>
+                </li>
+        </ul>
+    </nav>
+
+    <script>
+        const fullPath = window.location.pathname
+        document.querySelectorAll(`nav.navbar ul.navbar-nav li.nav-item a.nav-link[href='${fullPath}']`).forEach(e => {
+            e.parentElement.classList.add('active')
+        })
+        
+        try {
+            if(storeID !== undefined) {
+                document.querySelector(`nav.navbar ul.navbar-nav li.nav-item.payments-item a.nav-link[href='/dashboard/stores/view/${storeID}/payments'`).parentElement.classList.remove("d-none")
+
+                document.querySelector("nav.navbar ul.navbar-nav li.nav-item a.nav-link[href='/dashboard/stores'").parentElement.classList.add('active')
+
+                delimiter = `view/${storeID}`
+                const storePath = fullPath.split(delimiter)[0] + delimiter
+                if(storePath != fullPath) {
+                    document.querySelector(`nav.navbar ul.navbar-nav li.nav-item a.nav-link[href='${storePath}']`).parentElement.classList.add('active')
+                }
+            }
+        } catch(e) {
+            if(fullPath === "/dashboard/stores/") {
+                document.querySelector("nav.navbar ul.navbar-nav li.nav-item a.nav-link[href='#stores-list'").parentElement.classList.add('active')
+                document.querySelector("nav.navbar ul.navbar-nav li.nav-item a.nav-link[href='/dashboard/stores'").parentElement.classList.add('active')
+            }
+        }
+    </script>
+{{end}}

@@ -1,0 +1,1301 @@
+openapi: 3.0.3
+info:
+  title: DERO Merchant REST API
+  version: 1.0.0
+  contact:
+    name: DERO Merchant Support
+    email: merchant@dero.io
+  license:
+    name: MIT
+    url: '/license'
+  x-logo:
+    url: '/static/img/header_logo.png'
+    altText: DERO Logo
+    href: '/'
+  description: |
+    # Introduction
+      Start accepting secure and private DERO payments on your online store thorugh the DERO Merchant Payment Gateway.
+
+      _No need for running daemon/wallet or any other additional software on your server._
+
+      Register your _store(s)_ in the [Dashboard](/dashboard) to generate your keys and get started.
+
+    # Authentication
+      ## X-API-Key
+      HTTP Header _X-API-Key_ is required to authenticate your store in requests.
+      ## X-Signature
+      An additional HTTP Header _X-Signature_ is required to authorize _create payment_ requests (`POST /payment`).
+      
+      Signature is the _hex encoded HMAC-SHA256_ of the JSON _request body_ generated using the Secret Key of your store.
+      
+      ## How to authenticate requests
+      You can find the __API Key__ and the __Secret Key__ of your store in the [Dashboard](/dashboard).
+      ___
+      __Our SDK takes care of authentication and authorization__, so you are only required to type in your store keys at set up and let the code do the hard work.
+
+      However, of you are interested to know what the process looks like, you can check out [SDK source code](#section/SDK) or _cURL Request sample_ of our [operations](#tag/payment).
+
+    # SDK
+      We provide libraries for different programming languages to make integration into your backend as easy as possible.
+
+      - [Go (Golang)](https://github.com/peppinux/dero-merchant-go-sdk)
+
+      - [NodeJS](https://github.com/peppinux/dero-merchant-node-sdk)
+
+      - [Python (Work In Progress)](https://github.com/peppinux/dero-merchant-python-sdk)
+
+      - [PHP](https://github.com/peppinux/dero-merchant-php-sdk)
+
+      - [Ruby (Work In Progress)](https://github.com/peppinux/dero-merchant-ruby-sdk)
+
+      - [Java (Work In Progress)](https://github.com/peppinux/dero-merchant-java-sdk)
+
+      - [.NET (Work In Progress)](https://github.com/peppinux/dero-merchant-dotnet-sdk)
+    
+    # Step by step server integration
+    ## 1. Setup
+    1. Choose the right [DERO Merchant SDK](#section/SDK) for your backend programming language.
+    2. Import the SDK module into your project.
+    3. Set your API Key and Secret Key.
+    > Detailed steps depending on the chosen language can be found in the README of SDK's repository.
+
+    ## 2. Accept DERO payments
+    1. Add a payment option to the existing ones in your store __or__ add a [Pay with DERO button](/todo/link).
+    2. __When the customer confirms the order on your store__, create a new payment on DERO Merchant by providing the _currency_ and the _amount of currency_ of the order.
+    _Refer to the Request samples of the [create payment operation](#operation/createPayment) for ad-hoc code for your programming language._
+    3. Show to the customer __at least__ the __Integrated Address__ of the wallet they have to send the payment to, the __amount of DERO__ they have to pay and the __number of minutes__ they have left before the payment expires.
+    Such info is returned by the create payment operation.
+    > __ALTERNATIVE__: Show to the customer, in an iframe, pop-up or new tab, the [pay helper page](#section/Pay-helper-page) `https://merchant.dero.io/pay/{payment_id}` where {payment_id} is the ID just returned from the create payment operation.
+    4. Save the Payment ID returned from the operation and associate it to the order made by the customer. In this way, when the status of the payment changes, the status of the order on your store can get updated too.
+
+    ## 3. Check for payment status updates
+    Once it is created, a payment has a status of _pending_.
+    When the customer pays, the status changes to _paid_.
+    If the customer does not pay in time, the status changes to _expired_.
+    If something goes wrong along the line, the status changes to _error_.
+
+    Listening to status' changes is necessary to update the status of the order on your store accordingly.
+
+    You can either:
+      - __RECOMMENDED__: [Setup a Webhook](#section/Webhook) on your web server to receive order status updates from DERO Merchant.
+      
+      OR
+
+      - Periodically (e.g., once every minute) call the [get payment operation](#operation/getPayment) or [get payments by ID operation](#operation/getPaymentsByID).
+
+    # Webhook
+    A _webhook_ is a endpoint on __your web server__ that receives statuses updates of pending payments.
+    The URL of the endpoint can be set in the [Dashboard](/dashboard).
+
+    __Payment update events__ are sent as POST requests from DERO Merchant to the endpoint in JSON format:
+    ```
+    {
+      paymentID: string,
+      status: string
+    }
+    ```
+    where __paymentID__ is the unique identifier of the payment and __status__ is its new status.
+    
+    A __X-Signature header__ you are highly advised to use in order to verify the request was actually sent from DERO Merchant is included.
+    
+    Signature is the _hex encoded HMAC-SHA256_ of the JSON _request body_ generated using the Webhook Secret Key of your store, that can be found in the [Dashboard](/dashboard).
+    ___
+    __Examples__ on how to set up the webhook depending on the language of your backend can be found in the README of your chosen SDK's GitHub repository.
+
+    # Pay helper page
+    The _pay helper page_ is a webpage located at https://merchant.dero.io/pay/{payment_id} which displays information (amount of DERO due, integrated address, status, minutes left, etc.) about a payment.
+
+    Its purpose is to be shown to the payer in an iframe/popup/new tab after payment is created.
+
+    The status of the payment on the page is updated in real-time using WebSockets.
+externalDocs:
+    description: Find out more about DERO Merchant
+    url: '/'
+servers:
+  - url: 'https://merchant.dero.io/api/v1'
+tags:
+  - name: payment
+    description: Payment operations
+  - name: payment_schema
+    x-displayName: Payment
+    description: <SchemaDefinition schemaRef="#/components/schemas/Payment" />
+x-tagGroups:
+  - name: Operations
+    tags:
+      - payment
+  - name: Schemas
+    tags:
+      - payment_schema
+components:
+  schemas:
+    Payment:
+      description: Payment object
+      type: object
+      properties:
+        paymentID:
+          type: string
+          minLength: 64
+          maxLength: 64
+          description: Unique randomly generated Payment ID.
+        status:
+          type: string
+          enum:
+            - pending
+            - paid
+            - expired
+            - error
+        currency:
+          type: string
+          format: int64
+          minLength: 3
+          maxLength: 4
+          description: 
+            Original currency of the payment. 
+            Can only be one of the currencies supported by CoinGecko API V3 or DERO itself. 
+        currencyAmount:
+          type: number
+          format: double
+        exchangeRate:
+          type: number
+          format: double
+          description: 
+            Value of 1 DERO in original currency. 
+            Fetched from CoinGecko API V3. 
+            If original currency is DERO, Exchange Rate is logically 1.
+        deroAmount:
+          type: string
+          description: 
+            Amount of DERO the customer has to pay. 
+            Calculated through Exchange Rate if original currency is not DERO.
+        atomicDeroAmount:
+          type: integer
+          format: uint64
+          minimum: 1
+        integratedAddress:
+          type: string
+          minLength: 142
+          maxLength: 142
+          description: 
+            Unique DERO Integrated Address associated to PaymentID. 
+            The customer has to send the payment to this address.
+        creationTime:
+          type: string
+          format: date-time
+        ttl:
+          type: integer
+          format: int32
+          description: Number of minutes left before payment expires.
+    Error:
+      description: Error object
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              format: int32
+              minimum: 400
+              maximum: 600
+            message:
+              type: string
+  responses:
+    InternalServerError:
+      description: 
+        Internal Server Error. 
+        Returned if something went wrong on the server-side and operation could not be completed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: 500
+              message: Internal Server Error
+  examples:
+    InvalidAPIKeyError:
+      summary: Invalid API Key
+      description: Returned if a store associated to API Key was not found.
+      value:
+        error:
+          code: 403
+          message: Invalid API Key
+    InvalidAPIKeyHeaderError:
+      summary: Invalid X-API-Key Header
+      value:
+        error:
+          code: 400
+          message: 'Invalid Header X-API-Key: required 64 characters long string'
+    InvalidRequestParams:
+      summary: Invalid request params
+      description: Returned if a not specified error occured while trying to read request body params.
+      value:
+        error:
+          code: 400
+          message: Invalid request params
+  securitySchemes:
+    X-API-Key:
+      type: apiKey
+      name: X-API-Key
+      in: header
+      description: Header X-API-Key is needed to authenticate the store.
+security:
+  - X-API-Key: []
+paths:
+  /payment:
+    post:
+      tags:
+        - payment
+      summary: Create payment
+      description: >-
+        Given a __currency__ and an __amount__, creates a new payment the wallet of the store is expected to receive.
+        The store is identified by the API Key sent through the __X-API-Key__ Header.
+        As an additional security measure, the request body __MUST__ be also signed using the store Secret Key.
+      operationId: createPayment
+      parameters:
+        - name: X-Signature
+          in: header
+          description: HMAC-SHA256 hex encoded signature of the request body. 
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 64
+      requestBody:
+        description: Object containing __currency__ and __amount__ of currency of the payment.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 4
+                amount:
+                  type: number
+                  format: float64
+            examples:
+              DERO10:
+                summary: Create 10 DERO Payment
+                value:
+                  currency: DERO
+                  amount: 10
+              USD100:
+                summary: Create $100 Payment
+                value:
+                  currency: USD
+                  amount: 100
+              EUR110:
+                summary: Create €110 Payment
+                value:
+                  currency: EUR
+                  amount: 110
+        required: true
+      responses:
+        '201':
+          description: Returns the object of the newly created payment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+              examples:
+                DERO10_Create:
+                  summary: 10 DERO Payment created
+                  value:
+                    paymentID: 44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758
+                    status: pending
+                    currency: DERO
+                    currencyAmount: 10
+                    exchangeRate: 1
+                    deroAmount: '10.000000000000'
+                    atomicDeroAmount: 10000000000000
+                    integratedAddress: dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYZpbsdGpcLGqeLcZ6T8PQdHRkcYXH3jK6QCppgh5k2oTz4E7mEY
+                    creationTime: 2019-10-29T16:14:30.970909Z
+                    ttl: 60
+                USD100_Create:
+                  summary: $100 Payment created
+                  value:
+                    paymentID: e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7
+                    status: pending
+                    currency: USD
+                    currencyAmount: 100
+                    exchangeRate: 0.475913
+                    deroAmount: '210.122438344824'
+                    atomicDeroAmount: 210122438344824
+                    integratedAddress: dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYtSJs1h98rsiWbczH3D2bLuXYecF6mJWCBZ6wDJ7F67AvTUxEcY
+                    creationTime: 2019-10-29T16:18:25.519585Z
+                    ttl: 60
+                EUR110_Create:
+                  summary: €110 Payment created
+                  value:
+                    paymentID: bc8ba8a1ac97326cbab327f62d1cc010d381f717ed0e8f8daba46551093bc613
+                    status: pending
+                    currency: EUR
+                    currencyAmount: 110
+                    exchangeRate: 0.427524
+                    deroAmount: '257.295496860995'
+                    atomicDeroAmount: 257295496860995
+                    integratedAddress: dETirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYoKNtrQBSHoQGm6dMat5ouz2grWPcp3SFwTXjarYQ3GNzGMDD3g
+                    creationTime: 2019-10-29T16:20:30.269537Z
+                    ttl: 60
+        '400':
+          description: Bad Request Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                InvalidRequestParams:
+                  $ref: '#/components/examples/InvalidRequestParams'
+                InvalidAPIKeyHeader:
+                  $ref: '#/components/examples/InvalidAPIKeyHeaderError'
+                InvalidSignatureHeader:
+                  summary: Invalid X-Signature Header
+                  value:
+                    error:
+                      code: 400
+                      message: 'Invalid Header X-Signature: required 64 characters long SHA256 hex encoded string'
+        '401':
+          description: 
+            Unauthorized Error. 
+            Returned if signature sent in header does not match the actual signature of request body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: 401
+                  message: Invalid Signature
+        '403':
+          description: Forbidden Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                InvalidAPIKey:
+                  $ref: '#/components/examples/InvalidAPIKeyError'
+        '422':
+          description: 
+            Unprocessable Entity Error. 
+            Returned if illegal input was sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                InvalidParamCurrency:
+                  summary: Invalid currency param
+                  value:
+                    error:
+                      code: 422
+                      message: "Invalid Param 'currency': required 3-4 chars long string"
+                InvalidParamAmount:
+                  summary: Invalid amount param
+                  value:
+                    error:
+                      code: 422
+                      message: "Invalid Param 'amount': required float"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-code-samples:
+        - lang: 'cURL'
+          source: |
+            # EXAMPLE: Create 10 DERO Payment
+
+            $ echo -n '{"currency":"DERO","amount":10}' | openssl dgst -sha256 -mac hmac -macopt hexkey:"YOUR_SECRET_KEY_GOES_HERE"
+            (stdin)= SIGNATURE_WILL_BE_HERE
+            
+            $ curl -H "Content-Type: application/json" -H "X-API-Key: YOUR_API_KEY_GOES_HERE" -H "X-Signature: SIGNATURE_GOES_HERE" -X POST "https://merchant.dero.io/api/v1/payment" -d '{"currency":"DERO","amount":10}'
+            {"paymentID":"44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758","status":"pending","currency":"DERO","currencyAmount":10,"exchangeRate":1,"deroAmount":"10.000000000000","atomicDeroAmount":10000000000000,"integratedAddress":"dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYZpbsdGpcLGqeLcZ6T8PQdHRkcYXH3jK6QCppgh5k2oTz4E7mEY","creationTime":"2019-10-29T16:14:30.970909Z","ttl":60}
+        - lang: 'Go (Golang)'
+          source: |
+            p, err := dmClient.CreatePayment("DERO", 10)
+            if err != nil {
+                    apiErr, ok := err.(*deromerchant.APIError)
+                    if ok {
+                            // Handle APIError
+                    }
+                    // Handle error
+            }
+
+            fmt.Printf("%+v\n", p)
+            /*
+                    Object of type *deromerchant.Payment
+                    &{
+                            PaymentID:09052ec05347670f76cc07ce9c88deb6ce2bf71105eb284fc805de83439ce980
+                            Status:pending
+                            Currency:DERO
+                            CurrencyAmount:10
+                            ExchangeRate:1
+                            DeroAmount:10.000000000000
+                            AtomicDeroAmount:10000000000000
+                            IntegratedAddress:dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRVt3yXdtCwhHBbXUz8jPtozbqcG7H6gLKgDnE66ZQ6wtEtJct5u
+                            CreationTime:2020-01-29 17:36:20.040876 +0000 UTC
+                            TTL:60
+                  }
+            */
+        - lang: 'NodeJS'
+          source: |
+            // Using async/await
+            try {
+              const payment = await dmClient.createPayment('DERO', 10);
+              console.log(payment);
+              /*
+              {
+                paymentID: '38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1',
+                status: 'pending',
+                currency: 'DERO',
+                currencyAmount: 10,
+                exchangeRate: 1,
+                deroAmount: '10.000000000000',
+                atomicDeroAmount: 10000000000000,
+                integratedAddress: 'dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRbFua6e8dW1xcFY6wPTBwHDPNN2eC4gdDNzhJWUL79pD2Tn2ksE',
+                creationTime: '2020-01-16T16:49:59.131189Z',
+                ttl: 60
+              }
+              */
+            } catch(err) {
+              console.error(err);
+            }
+
+            // Using Promises
+            dmClient.createPayment('DERO', 10)
+              .then(payment => {
+                console.log(payment);
+              })
+              .catch(err => {
+                console.error(err);
+              });
+        - lang: 'PHP'
+          source: |
+            try
+            {
+                $res = $dmClient->createPayment('DERO', 10);
+            
+                print_r($res);
+                /*
+                    Array 
+                    ( 
+                        [paymentID] => e7baca2f8c620e910bbfcdcbec1606512fa01d96a473edcab76d40ab55cc6a88 
+                        [status] => pending 
+                        [currency] => DERO 
+                        [currencyAmount] => 10 
+                        [exchangeRate] => 1 
+                        [deroAmount] => 10.000000000000 
+                        [atomicDeroAmount] => 10000000000000 
+                        [integratedAddress] => dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRw1PDmRmHQGwKZ3LdZ54gfgcpcSgo5LPf1S2FQkTE8kJ5Wy3YAW 
+                        [creationTime] => 2020-02-20T19:08:24.271749Z 
+                        [ttl] => 60 
+                    ) 
+                */
+            }
+            catch(\Exception $e)
+            {
+                // Handle exception.
+            }
+  /payment/{payment_id}:
+    get:
+      tags:
+        - payment
+      summary: Get payment by Payment ID
+      description: >-
+        Returns a payment object from its __Payment ID__.
+        The store to which the payment belongs is identified by the API Key sent through the __X-API-Key__ Header.
+        Of course, payments owned by another store cannot be retrieved.
+        No signature is required.
+      operationId: getPayment
+      parameters:
+        - name: payment_id
+          in: path
+          description: The Payment ID of the payment to return
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 64
+          examples:
+            DERO10_PaymentID:
+              summary: 'Payment ID #1'
+              value: 44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758
+            USD100_PaymentID:
+              summary: 'Payment ID #2'
+              value: e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7
+            EUR110_PaymentID:
+              summary: 'Payment ID #3'
+              value: bc8ba8a1ac97326cbab327f62d1cc010d381f717ed0e8f8daba46551093bc613
+      responses:
+        '200':
+          description: Returns the object of the requested payment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+              examples:
+                DERO10_Paid:
+                  summary: Paid
+                  description: Paid payment of 10 DERO.
+                  value:
+                    paymentID: 44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758
+                    status: paid
+                    currency: DERO
+                    currencyAmount: 10
+                    exchangeRate: 1
+                    deroAmount: '10.000000000000'
+                    atomicDeroAmount: 10000000000000
+                    integratedAddress: dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYZpbsdGpcLGqeLcZ6T8PQdHRkcYXH3jK6QCppgh5k2oTz4E7mEY
+                    creationTime: 2019-10-29T16:14:30.970909Z
+                    ttl: 0
+                USD100_Pending:
+                  summary: Pending
+                  description: Pending payment of $100. 15 minutes left before it expires.
+                  value:
+                    paymentID: e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7
+                    status: pending
+                    currency: USD
+                    currencyAmount: 100
+                    exchangeRate: 0.475913
+                    deroAmount: '210.122438344824'
+                    atomicDeroAmount: 210122438344824
+                    integratedAddress: dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYtSJs1h98rsiWbczH3D2bLuXYecF6mJWCBZ6wDJ7F67AvTUxEcY
+                    creationTime: 2019-10-29T16:18:25.519585Z
+                    ttl: 15
+                USD100_Expired:
+                  summary: Expired
+                  description: Expired payment of $100.
+                  value:
+                    paymentID: e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7
+                    status: expired
+                    currency: USD
+                    currencyAmount: 100
+                    exchangeRate: 0.475913
+                    deroAmount: '210.122438344824'
+                    atomicDeroAmount: 210122438344824
+                    integratedAddress: dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYtSJs1h98rsiWbczH3D2bLuXYecF6mJWCBZ6wDJ7F67AvTUxEcY
+                    creationTime: 2019-10-29T16:18:25.519585Z
+                    ttl: 0
+                EUR110_Error:
+                  summary: Error
+                  description: Payment failed because something went wrong along the way (e.g., server crashed).
+                  value:
+                    paymentID: bc8ba8a1ac97326cbab327f62d1cc010d381f717ed0e8f8daba46551093bc613
+                    status: error
+                    currency: EUR
+                    currencyAmount: 110
+                    exchangeRate: 0.427524
+                    deroAmount: '257.295496860995'
+                    atomicDeroAmount: 257295496860995
+                    integratedAddress: dETirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYoKNtrQBSHoQGm6dMat5ouz2grWPcp3SFwTXjarYQ3GNzGMDD3g
+                    creationTime: 2019-10-29T16:20:30.269537Z
+                    ttl: 0
+        '400':
+          description: Bad Request Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                InvalidAPIKeyHeader:
+                  $ref: '#/components/examples/InvalidAPIKeyHeaderError'
+        '403':
+          description: Forbidden Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                InvalidAPIKey:
+                  $ref: '#/components/examples/InvalidAPIKeyError'
+        '404':
+          description: Not Found Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: 404
+                  message: Payment not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-code-samples:
+        - lang: 'cURL'
+          source: |
+            # EXAMPLE: Get Payment ID 44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758
+
+            $ curl -H "Content-Type: application/json" -H "X-API-Key: YOUR_API_KEY_GOES_HERE" -X GET "https://merchant.dero.io/api/v1/payment/44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758"
+            {"paymentID":"44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758","status":"paid","currency":"DERO","currencyAmount":10,"exchangeRate":1,"deroAmount":"10.000000000000","atomicDeroAmount":10000000000000,"integratedAddress":"dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYZpbsdGpcLGqeLcZ6T8PQdHRkcYXH3jK6QCppgh5k2oTz4E7mEY","creationTime":"2019-10-29T16:14:30.970909Z","ttl":0}
+        - lang: 'Go (Golang)'
+          source: |
+            paymentID := "09052ec05347670f76cc07ce9c88deb6ce2bf71105eb284fc805de83439ce980"
+            p, err := dmClient.GetPayment(paymentID)
+            if err != nil {
+                    apiErr, ok := err.(*deromerchant.APIError)
+                    if ok {
+                            // Handle APIError
+                    }
+                    // Handle error
+            }
+
+            fmt.Printf("%+v\n", p)
+            /*
+                    Object of type *deromerchant.Payment
+                    &{
+                            PaymentID:09052ec05347670f76cc07ce9c88deb6ce2bf71105eb284fc805de83439ce980 
+                            Status:pending 
+                            Currency:DERO 
+                            CurrencyAmount:10 
+                            ExchangeRate:1 
+                            DeroAmount:10.000000000000 
+                            AtomicDeroAmount:10000000000000 
+                            IntegratedAddress:dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRVt3yXdtCwhHBbXUz8jPtozbqcG7H6gLKgDnE66ZQ6wtEtJct5u 
+                            CreationTime:2020-01-29 17:36:20.040876 +0000 UTC 
+                            TTL:48
+                    }
+            */
+        - lang: 'NodeJS'
+          source: |
+            // Using async/await
+            try {
+              const paymentID = '38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1';
+              const payment = await dmClient.getPayment(paymentID);
+            
+              console.log(payment);
+              /*
+              {
+                paymentID: '38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1',
+                status: 'pending',
+                currency: 'DERO',
+                currencyAmount: 10,
+                exchangeRate: 1,
+                deroAmount: '10.000000000000',
+                atomicDeroAmount: 10000000000000,
+                integratedAddress: 'dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRbFua6e8dW1xcFY6wPTBwHDPNN2eC4gdDNzhJWUL79pD2Tn2ksE',
+                creationTime: '2020-01-16T16:49:59.131189Z',
+                ttl: 54
+              }
+              */
+            } catch(err) {
+              console.error(err);
+            }
+            
+            // Using Promises
+            const paymentID = '38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1';
+            dmClient.getPayment(paymentID)
+              .then(payment => {
+                console.log(payment);
+              })
+              .catch(err => {
+                console.error(err);
+              });
+        - lang: 'PHP'
+          source: |
+            try
+            {
+                $paymentID = 'e7baca2f8c620e910bbfcdcbec1606512fa01d96a473edcab76d40ab55cc6a88';
+                $res = $dmClient->getPayment($paymentID);
+                
+                print_r($res);
+                /*
+                    Array 
+                    ( 
+                        [paymentID] => e7baca2f8c620e910bbfcdcbec1606512fa01d96a473edcab76d40ab55cc6a88 
+                        [status] => pending 
+                        [currency] => DERO 
+                        [currencyAmount] => 10 
+                        [exchangeRate] => 1 
+                        [deroAmount] => 10.000000000000 
+                        [atomicDeroAmount] => 10000000000000 
+                        [integratedAddress] => dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRw1PDmRmHQGwKZ3LdZ54gfgcpcSgo5LPf1S2FQkTE8kJ5Wy3YAW 
+                        [creationTime] => 2020-02-20T19:08:24.271749Z 
+                        [ttl] => 53 
+                    ) 
+                */
+            }
+            catch(\Exception $e)
+            {
+                // Handle exception.
+            }
+  /payments:
+    post:
+      tags:
+        - payment
+      summary: Get list of payments by their Payment IDs
+      description: >-
+        Returns a list of payments owned by the store filtered by their Payment IDs.
+        The store is identified by the API Key sent through the __X-API-Key__ Header.
+        Requested Payment IDs are sent as a JSON array of strings.
+      operationId: getPaymentsByID
+      requestBody:
+        description: Array of Payment IDs.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                title: Payment ID
+                type: string
+            example: ["44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758", "e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7", "bc8ba8a1ac97326cbab327f62d1cc010d381f717ed0e8f8daba46551093bc613"]
+        required: true
+      responses:
+        '200':
+          description: Returns an array of requested payments objects. Payments with invalid Payment IDs (non-existent or owned by other stores) will not be included in the response.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+              example:
+                - paymentID: 44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758
+                  status: paid
+                  currency: DERO
+                  currencyAmount: 10
+                  exchangeRate: 1
+                  deroAmount: '10.000000000000'
+                  atomicDeroAmount: 10000000000000
+                  integratedAddress: dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYZpbsdGpcLGqeLcZ6T8PQdHRkcYXH3jK6QCppgh5k2oTz4E7mEY
+                  creationTime: 2019-10-29T16:14:30.970909Z
+                  ttl: 0
+                - paymentID: e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7
+                  status: expired
+                  currency: USD
+                  currencyAmount: 100
+                  exchangeRate: 0.475913
+                  deroAmount: '210.122438344824'
+                  atomicDeroAmount: 210122438344824
+                  integratedAddress: dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYtSJs1h98rsiWbczH3D2bLuXYecF6mJWCBZ6wDJ7F67AvTUxEcY
+                  creationTime: 2019-10-29T16:18:25.519585Z
+                  ttl: 0
+                - paymentID: bc8ba8a1ac97326cbab327f62d1cc010d381f717ed0e8f8daba46551093bc613
+                  status: error
+                  currency: EUR
+                  currencyAmount: 110
+                  exchangeRate: 0.427524
+                  deroAmount: '257.295496860995'
+                  atomicDeroAmount: 257295496860995
+                  integratedAddress: dETirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYoKNtrQBSHoQGm6dMat5ouz2grWPcp3SFwTXjarYQ3GNzGMDD3g
+                  creationTime: 2019-10-29T16:20:30.269537Z
+                  ttl: 0
+        '400':
+          description: Bad Request Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                EmptyRequestArray:
+                  summary: No Payment IDs sumitted
+                  description: Returned when an empty array with no payment IDs is submitted as request body.
+                  value:
+                    error:
+                      code: 400
+                      message: No Payment IDs submitted
+                InvalidRequestParams:
+                  $ref: '#/components/examples/InvalidRequestParams'
+                InvalidAPIKeyHeader:
+                  $ref: '#/components/examples/InvalidAPIKeyHeaderError'
+        '403':
+          description: Forbidden Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                InvalidAPIKey:
+                  $ref: '#/components/examples/InvalidAPIKeyError'
+        '404':
+          description: Not Found Error. Returned when requested payments have not been found because either non-existent or owned by another store.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: 404
+                  message: Payments not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-code-samples:
+        - lang: 'cURL'
+          source: |
+            # EXAMPLE: Get payments with 3 specific Payment IDs
+
+            $ curl -H "Content-Type: application/json" -H "X-API-Key: YOUR_API_KEY_GOES_HERE" -X POST "https://merchant.dero.io/api/v1/payments" -d '["44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758","e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7","bc8ba8a1ac97326cbab327f62d1cc010d381f717ed0e8f8daba46551093bc613"]'
+            [{"paymentID":"44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758","status":"paid","currency":"DERO","currencyAmount":10,"exchangeRate":1,"deroAmount":"10.000000000000","atomicDeroAmount":10000000000000,"integratedAddress":"dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYZpbsdGpcLGqeLcZ6T8PQdHRkcYXH3jK6QCppgh5k2oTz4E7mEY","creationTime":"2019-10-29T16:14:30.970909Z","ttl":0},{"paymentID":"e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7","status":"expired","currency":"USD","currencyAmount":100,"exchangeRate":0.475913,"deroAmount":"210.122438344824","atomicDeroAmount":210122438344824,"integratedAddress":"dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYtSJs1h98rsiWbczH3D2bLuXYecF6mJWCBZ6wDJ7F67AvTUxEcY","creationTime":"2019-10-29T16:18:25.519585Z","ttl":0},{"paymentID":"bc8ba8a1ac97326cbab327f62d1cc010d381f717ed0e8f8daba46551093bc613","status":"error","currency":"EUR","currencyAmount":110,"exchangeRate":0.427524,"deroAmount":"257.295496860995","atomicDeroAmount":257295496860995,"integratedAddress":"dETirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYoKNtrQBSHoQGm6dMat5ouz2grWPcp3SFwTXjarYQ3GNzGMDD3g","creationTime":"2019-10-29T16:20:30.269537Z","ttl":0}]
+        - lang: 'Go (Golang)'
+          source: |
+            paymentIDs := []string{
+              "09052ec05347670f76cc07ce9c88deb6ce2bf71105eb284fc805de83439ce980",
+              "38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1",
+            }
+            ps, err := dmClient.GetPayments(paymentIDs)
+            if err != nil {
+                    apiErr, ok := err.(*deromerchant.APIError)
+                    if ok {
+                            // Handle APIError
+                    }
+                    // Handle error
+            }
+
+            for _, p := range ps {
+                    fmt.Printf("%+v\n", p)
+            }
+            /*
+                    Objects of type *deromerchant.Payment
+                    &{
+                            PaymentID:38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1 
+                            Status:paid 
+                            Currency:DERO 
+                            CurrencyAmount:10 
+                            ExchangeRate:1 
+                            DeroAmount:10.000000000000 
+                            AtomicDeroAmount:10000000000000 
+                            IntegratedAddress:dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRbFua6e8dW1xcFY6wPTBwHDPNN2eC4gdDNzhJWUL79pD2Tn2ksE 
+                            CreationTime:2020-01-16 16:49:59.131189 +0000 UTC 
+                            TTL:0
+                    }
+                    &{
+                            PaymentID:09052ec05347670f76cc07ce9c88deb6ce2bf71105eb284fc805de83439ce980 
+                            Status:pending 
+                            Currency:DERO 
+                            CurrencyAmount:10 
+                            ExchangeRate:1 
+                            DeroAmount:10.000000000000 
+                            AtomicDeroAmount:10000000000000 
+                            IntegratedAddress:dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRVt3yXdtCwhHBbXUz8jPtozbqcG7H6gLKgDnE66ZQ6wtEtJct5u 
+                            CreationTime:2020-01-29 17:36:20.040876 +0000 UTC 
+                            TTL:43
+                    }
+            */
+        - lang: 'NodeJS'
+          source: |
+            // Using async/await
+            try {
+              const payids = [
+                '38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1',
+                '0edd43c9d6cad603c22962caeaf3554c2cffd46dd246ab222688ad1a8507924a'
+              ];
+              const payments = await dmClient.getPayments(payids);
+            
+              console.log(payments);
+              /*
+              [{
+                paymentID: '38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1',
+                status: 'pending',
+                currency: 'DERO',
+                currencyAmount: 10,
+                exchangeRate: 1,
+                deroAmount: '10.000000000000',
+                atomicDeroAmount: 10000000000000,
+                integratedAddress: 'dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRbFua6e8dW1xcFY6wPTBwHDPNN2eC4gdDNzhJWUL79pD2Tn2ksE',
+                creationTime: '2020-01-16T16:49:59.131189Z',
+                ttl: 49
+              },
+              {
+                paymentID: '0edd43c9d6cad603c22962caeaf3554c2cffd46dd246ab222688ad1a8507924a',
+                status: 'paid',
+                currency: 'DERO',
+                currencyAmount: 1,
+                exchangeRate: 1,
+                deroAmount: '1.000000000000',
+                atomicDeroAmount: 1000000000000,
+                integratedAddress: 'dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRWYHz54HavmGWs898KjhhdwAGRdkmFCpaE9gRFzz81HeDJSxT4k',
+                creationTime: '2020-01-16T19:24:57.468508Z',
+                ttl: 0
+              }]
+              */
+            } catch(err) {
+                console.error(err);
+            }
+            
+            // Using Promises
+            const payids = [
+              '38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1',
+              '0edd43c9d6cad603c22962caeaf3554c2cffd46dd246ab222688ad1a8507924a'
+            ];
+            
+            dmClient.getPayments(payids)
+              .then(payments => {
+                console.log(payments);
+              })
+              .catch(err => {
+                console.error(err);
+              });
+        - lang: 'PHP'
+          source: |
+            try
+            {
+                $paymentIDs = array(
+                    'e7baca2f8c620e910bbfcdcbec1606512fa01d96a473edcab76d40ab55cc6a88',
+                    '38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1'
+                );
+                $res = $dmClient->getPayments($paymentIDs);
+            
+                print_r($res);
+                /*
+                    Array
+                    ( 
+                        [0] => Array 
+                        ( 
+                            [paymentID] => 38ad8cf0c5da388fe9b5b44f6641619659c99df6cdece60c6e202acd78e895b1
+                            [status] => paid 
+                            [currency] => DERO 
+                            [currencyAmount] => 10 
+                            [exchangeRate] => 1 
+                            [deroAmount] => 10.000000000000 
+                            [atomicDeroAmount] => 10000000000000 
+                            [integratedAddress] => dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRbFua6e8dW1xcFY6wPTBwHDPNN2eC4gdDNzhJWUL79pD2Tn2ksE 
+                            [creationTime] => 2020-01-16T16:49:59.131189Z 
+                            [ttl] => 0
+                        ) 
+                        [1] => Array 
+                        ( 
+                            [paymentID] => e7baca2f8c620e910bbfcdcbec1606512fa01d96a473edcab76d40ab55cc6a88
+                            [status] => pending 
+                            [currency] => DERO 
+                            [currencyAmount] => 10 
+                            [exchangeRate] => 1 
+                            [deroAmount] => 10.000000000000 
+                            [atomicDeroAmount] => 10000000000000 
+                            [integratedAddress] => dETiaFw6kkrSQ8BByamH8P9iNUCfYsLnUHTL9KftUBRZZEt44i86djtWr9sMpudU955wnLMwcv2YuNGDuTbQwrwDe2tRw1PDmRmHQGwKZ3LdZ54gfgcpcSgo5LPf1S2FQkTE8kJ5Wy3YAW 
+                            [creationTime] => 2020-02-20T19:08:24.271749Z 
+                            [ttl] => 49
+                        )
+                    ) 
+                */
+            }
+            catch(\Exception $e)
+            {
+                // Handle exception.
+            }
+    get:
+      tags:
+        - payment
+      summary: Get list of filtered payments
+      description: >-
+        Returns a list of payments owned by the store.
+        The store is identified by the API Key sent through the __X-API-Key__ Header.
+        Maximum amount of payments to get is specified thorugh the __limit__ param. __page__ param is used for pagination.
+        Payments can be sorted and ordered through __sort_by__ and __order_by__ params.
+        Payments can also be filtered by __status__ and/or __currency__.
+        Of course, payments owned by another store cannot be retrieved.
+        No signature is required.
+      operationId: getPayments
+      parameters:
+        - name: limit
+          in: query
+          description: Max number of payments.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+          examples:
+            NoLimit:
+              summary: No limit
+              description: Setting no limit will return ALL the payments.
+              value: 0
+            Limit10:
+              summary: Limit 10
+              description: A maximum of 10 payments will be returned.
+              value: 10
+        - name: page
+          in: query
+          description: Page number.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 1
+        - name: sort_by
+          in: query
+          description: Sort payments by param.
+          required: false
+          schema:
+            type: string
+            enum:
+              - creation_time
+              - currency_amount
+              - exchange_rate
+              - atomic_dero_amount
+            default: creation_time
+        - name: order_by
+          in: query
+          description: Payments order.
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+        - name: status
+          in: query
+          description: Filter payments by status.
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - paid
+              - expired
+              - error
+          examples:
+            NoStatusFilter:
+              summary: No status filter
+              description: Returns payments with ALL statuses.
+              value: ''
+            PendingStatusFilter:
+              summary: Pending status
+              description: Returns pending payments only.
+              value: pending
+        - name: currency
+          in: query
+          description: Filter payments by currency.
+          required: false
+          schema:
+            type: string
+            maxLength: 4
+          examples:
+            NoCurrencyFilter:
+              summary: No currency filter
+              description: Returns payments with ALL currencies.
+              value: ''
+            EURCurrencyFilter:
+              summary: EUR currency
+              description: Returns only payments whose original currency was EUR.
+              value: EUR
+      responses:
+        '200':
+          description: 
+            Returns an array of payment objects and pagination info. 
+            Max array size is defined by limit.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  limit:
+                    type: integer
+                    format: int32
+                    minimum: 0
+                  page:
+                    type: integer
+                    format: int32
+                    minimum: 1
+                  totalPayments:
+                    type: integer
+                    format: int32
+                  totalPages:
+                    type: integer
+                    format: int32
+                  payments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payment'
+              examples:
+                FilterStatusPending:
+                  summary: 'Filter by status: pending'
+                  description: Response to a request for __pending payments__ only with __no limit__.
+                  value:
+                    limit: 0
+                    page: 1
+                    totalPayments: 1
+                    totalPages: 1
+                    payments:
+                      - paymentID: e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7
+                        status: pending
+                        currency: USD
+                        currencyAmount: 100
+                        exchangeRate: 0.475913
+                        deroAmount: '210.122438344824'
+                        atomicDeroAmount: 210122438344824
+                        integratedAddress: dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYtSJs1h98rsiWbczH3D2bLuXYecF6mJWCBZ6wDJ7F67AvTUxEcY
+                        creationTime: 2019-10-29T16:18:25.519585Z
+                        ttl: 15
+                Limit2:
+                  summary: Limit 2
+                  description: 
+                    Response to request with __limit__=2. 
+                    All other values are default.
+                  value:
+                    limit: 2
+                    page: 1
+                    totalPayments: 3
+                    totalPages: 2
+                    payments:
+                      - paymentID: bc8ba8a1ac97326cbab327f62d1cc010d381f717ed0e8f8daba46551093bc613
+                        status: error
+                        currency: EUR
+                        currencyAmount: 110
+                        exchangeRate: 0.427524
+                        deroAmount: '257.295496860995'
+                        atomicDeroAmount: 257295496860995
+                        integratedAddress: dETirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYoKNtrQBSHoQGm6dMat5ouz2grWPcp3SFwTXjarYQ3GNzGMDD3g
+                        creationTime: 2019-10-29T16:20:30.269537Z
+                        ttl: 0
+                      - paymentID: e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7
+                        status: pending
+                        currency: USD
+                        currencyAmount: 100
+                        exchangeRate: 0.475913
+                        deroAmount: '210.122438344824'
+                        atomicDeroAmount: 210122438344824
+                        integratedAddress: dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYtSJs1h98rsiWbczH3D2bLuXYecF6mJWCBZ6wDJ7F67AvTUxEcY
+                        creationTime: 2019-10-29T16:18:25.519585Z
+                        ttl: 0
+        '400':
+          description: Bad Request Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                InvalidQueryParams:
+                  summary: Invalid query params
+                  description: Returned if a not specified error occured while trying to read query params.
+                  value:
+                    error:
+                      code: 400
+                      message: Invalid query params
+                InvalidAPIKeyHeader:
+                  $ref: '#/components/examples/InvalidAPIKeyHeaderError'
+        '403':
+          description: Forbidden Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                InvalidAPIKey:
+                  $ref: '#/components/examples/InvalidAPIKeyError'
+        '404':
+          description: Not Found Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                NoPayments:
+                  summary: No payments found
+                  value:
+                    error:
+                      code: 404
+                      message: No payments found
+                NoPaymentsOnPage:
+                  summary: No payments found on this page
+                  value:
+                    error:
+                      code: 404
+                      message: No payments found on this page
+        '422':
+          description: 
+            Unprocessable Entity Error. 
+            Returned if illegal input was sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                InvalidParamLimit:
+                  summary: Invalid limit param
+                  value:
+                    error:
+                      code: 422
+                      message: "Query param 'limit' not valid. Allowed values: (empty) or min 0"
+                InvalidParamPage:
+                  summary: Invalid page param
+                  value:
+                    error:
+                      code: 422
+                      message: "Query param 'page' not valid. Allowed values: (empty) or min 1"
+                InvalidParamSortBy:
+                  summary: Invalid sort_by param
+                  value:
+                    error:
+                      code: 422
+                      message: "Query param 'sort_by' not valid. Allowed values: (empty), creation_time, currency_amount, exchange_rate, atomic_dero_amount"
+                InvalidParamOrderBy:
+                  summary: Invalid order_by param
+                  value:
+                    error:
+                      code: 422
+                      message: "Query param 'order_by' not valid. Allowed values: (empty), asc, desc"
+                InvalidParamStatus:
+                  summary: Invalid status param
+                  value:
+                    error:
+                      code: 422
+                      message: "Query param 'status' not valid. Allowed values: (empty), pending, paid, expired, error"
+                InvalidParamCurrency:
+                  summary: Invalid currency param
+                  value:
+                    error:
+                      code: 422
+                      message: "Query param 'currency' not valid. Allowed values: (empty) or max 4 characters"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-code-samples:
+        - lang: 'cURL'
+          source: |
+            # EXAMPLE: Get pending payments
+
+            $ curl -H "Content-Type: application/json" -H "X-API-Key: YOUR_API_KEY_GOES_HERE" -X GET "https://merchant.dero.io/api/v1/payments?status=pending"
+            {"limit":0,"page":1,"totalPayments":1,"totalPages":1,"payments":[{"paymentID":"e9ec25a9d82efdc565867539d80984c8c26aea56ee68a541e82eb53a2e86bfd7","status":"pending","currency":"USD","currencyAmount":100,"exchangeRate":0.475913,"deroAmount":"210.122438344824","atomicDeroAmount":210122438344824,"integratedAddress":"dERirWva318iAWhon1FTmhdwU5866x1WNFDkp7RRgBFiYD1F35oDJigdj8vR1K61ybAmpYY2VNyVXRjRRSyQTtmsYaqYtSJs1h98rsiWbczH3D2bLuXYecF6mJWCBZ6wDJ7F67AvTUxEcY","creationTime":"2019-10-29T16:18:25.519585Z","ttl":15}]}
+        - lang: 'Go (Golang)'
+          source: |
+            resp, err := GetFilteredPayments(limit int, page int, sortBy string, orderBy string, statusFilter string, currencyFilter string)
+            if err != nil {
+                    apiErr, ok := err.(*deromerchant.APIError)
+                    if ok {
+                            // Handle APIError
+                    }
+                    // Handle error
+            }
+
+            fmt.Println("%+v\n", resp) // Object of type *deromerchant.GetFilteredPaymentsResponse
+        - lang: 'NodeJS'
+          source: |
+            // Using async/await
+            try {
+              const res = await dmClient.getFilteredPayments({
+                limit: int,
+                page: int,
+                sortBy: string,
+                orderBy: string,
+                filterStatus: string,
+                filterCurrency: string
+              });
+            
+              console.log(res);
+            } catch(err) {
+              console.error(err);
+            }
+            
+            // Using Promises
+            dmClient.getFilteredPayments(options)
+              .then(payments => {
+                console.log(payments);
+              })
+              .catch(err => {
+                console.error(err);
+              });
+        - lang: 'PHP'
+          source: |
+            try
+            {
+                $res = $dmClient->getFilteredPayments($limit = null, $page = null, $sortBy = null, $orderBy = null, $statusFilter = null, $currencyFilter = null);
+            
+                print_r($res);
+            }
+            catch(\Exception $e)
+            {
+                // Handle exception.
+            }

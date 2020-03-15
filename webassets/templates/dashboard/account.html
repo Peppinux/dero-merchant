@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{template "head" "My Account"}}
+
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    {{template "header" .}}
+
+    <div class="container-fluid">
+        <div class="row">
+            {{template "sidebar" .}}
+
+            <div class="col-lg-10 col-md-9 col-sm-8 col-10">
+                <div class="card dashboard-page-card">
+                    <div class="card-body">
+                        <h1 class="card-title">My Account</h1>
+                        <h2 class="card-subtitle">{{.Username}} - <span id="email">{{.Email}}</span></h2>
+                        <p class="card-text">
+                            <div class="container-fluid card-content">
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="card border-0">
+                                            <div class="card-body">
+                                                <h3 class="card-title h5">Change email address</h3>
+
+                                                <p class="card-text">
+                                                    <form id="change-email">
+                                                        <div class="form-group">
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text"><i class="fas fa-at"></i></span>
+                                                                </div>
+                                                                <input type="email" class="form-control" id="new-email" name="new-email" placeholder="New email address" minlength="8" maxlength="64" required>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text"><i class="fas fa-unlock"></i></span>
+                                                                </div>
+                                                                <input type="password" class="form-control" id="password" name="password" placeholder="Your password" minlength="8" maxlength="64" required>
+                                                            </div>
+                                                        </div>
+
+                                                        <button class="btn btn-primary font-weight-bold" type="button">
+                                                            <i class="fas fa-user-edit"></i> Submit
+                                                        </button>
+
+                                                        <div class="alert mt-3 d-none" role="alert"></div>
+                                                    </form>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg">
+                                        <div class="card border-0">
+                                            <div class="card-body">
+                                                <h3 class="card-title h5">Change password</h3>
+
+                                                <p class="card-text">
+                                                    <form id="change-password">
+                                                        <div class="form-group">
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text"><i class="fas fa-unlock"></i></span>
+                                                                </div>
+                                                                <input type="password" class="form-control" id="old-password" name="old-password" placeholder="Old password" minlength="8" maxlength="64" required>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                                </div>
+                                                                <input type="password" class="form-control" id="new-password" name="new-password" placeholder="New password" minlength="8" maxlength="64" required>
+                                                            </div>
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                                </div>
+                                                                <input type="password" class="form-control" id="confirm-new-password" name="confirm-new-password" placeholder="Confirm new password" minlength="8" maxlength="64" required>
+                                                            </div>
+                                                        </div>
+
+                                                        <button class="btn btn-primary font-weight-bold" type="button">
+                                                            <i class="fas fa-user-edit"></i> Submit
+                                                        </button>
+
+                                                        <div class="alert mt-3 d-none" role="alert"></div>
+                                                    </form>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="card border-0">
+                                            <div class="card-body">
+                                                <h3 class="card-title h5">Session</h3>
+                                                
+                                                <p class="card-text">
+                                                    <form method="POST" action="/user/signout" role="link">
+                                                        <button class="btn  btn-outline-dark font-weight-bold" type="submit">
+                                                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                                                        </button>
+                                                    </form>
+                                                </p>
+
+                                                <p class="card-text">
+                                                    <form method="POST" action="/user/signout_all">
+                                                        <button class="btn  btn-outline-dark font-weight-bold" type="submit">
+                                                            <i class="fas fa-sign-out-alt"></i> Sign Out from all devices
+                                                        </button>
+                                                    </form>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{template "bootstrapDeps"}}
+
+    <script src="/static/js/account.js" defer></script>
+</body>
+</html>

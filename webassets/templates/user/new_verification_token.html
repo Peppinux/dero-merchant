@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{template "head" "Require new verification link"}}
+</head>
+<body class="bg-primary">
+    {{template "header" .}}
+    
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-center font-weight-light">Requrie new verification link</h5>
+
+                            <form method="POST">
+                                <div class="form-group">
+                                    <label for="email">Type your email to get a new verification link</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-at"></i></span>
+                                        </div>
+                                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" minlength="8" maxlength="64" required value="{{.Fields.Email}}">
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-block btn-primary rounded-pill mt-3 text-uppercase font-weight-bold" {{if .Success}}disabled{{end}}>Submit</button>
+                            </form>
+
+                            {{if .Success}}
+                                <div class="alert alert-success mt-4" role="alert">
+                                    A new verification link will be sent to your email address <strong>{{.Fields.Email}}</strong> shortly.
+                                </div>
+                            {{else}}
+                                {{if .Fields.Email}}
+                                    <div class="alert alert-danger mt-4" role="alert">
+                                        Something went wrong. Check if the email address you typed is valid and try again. Your account may already be verified. Try to <a href="/user/signin">Sign In</a>.
+                                    </div>
+                                {{end}}
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    {{template "bootstrapDeps"}}
+</body>
+</html>

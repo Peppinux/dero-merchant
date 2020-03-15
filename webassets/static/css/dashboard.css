@@ -1,0 +1,87 @@
+.navbar .container {
+    /* Override container to container-fluid in header navbar */
+    max-width: 100%;
+}
+
+/* Sidebar */
+
+.sidebar {
+    margin-top: -66px;
+    padding-top: 76px;
+    height: 100vh;
+}
+
+.sidebar ul.navbar-nav > li.nav-item {
+    width: 100%; /* Set w-100 */
+    padding-left: .75rem; /* Set pl-3*/
+}
+
+.sidebar ul.navbar-nav > li.nav-item a {
+    color: #fff;
+}
+
+.sidebar ul.navbar-nav > li.nav-item.active {
+    /* Set bg-light for active nav item */
+    background-color: #f8f9fa;
+}
+
+.sidebar ul.navbar-nav > li.nav-item.active > a {
+    /* Set text-primary for active nav link */
+    color: #007bff;
+}
+
+.sidebar ul.navbar-nav > li.nav-item > a.nav-link[data-toggle="collapse"]::after {
+    font-family: "Font Awesome 5 Free";
+    content: '\f107';
+    font-weight: 600;
+}
+
+.sidebar ul.navbar-nav > li.nav-item > a.nav-link[data-toggle="collapse"].collapsed::after {
+    content: '\f105';
+}
+
+.sidebar ul.navbar-nav#stores-list > li.nav-item {
+    padding-left: 2.25rem;
+}
+
+.sidebar ul.navbar-nav#stores-list > li.nav-item.payments-item {
+    padding-left: 3.5rem;
+}
+
+.sidebar ul.navbar-nav#stores-list > li.nav-item.payments-item.active {
+    display: block;
+    border-top: 1px solid #ddd;
+    padding-left: 2.25rem;
+}
+
+.sidebar ul.navbar-nav#stores-list > li.nav-item.active > a.nav-link > i.fa-plus-circle {
+    color: #28a745;
+}
+
+.sidebar ul.navbar-nav.d-flex.d-sm-none > li.nav-item {
+    padding: 0;
+}
+
+/* Dashboard Page */
+
+div.dashboard-page-card {
+    border: none;
+}
+
+div.dashboard-page-card > .card-body > .card-title {
+    font-size: 2rem; /* Set h2 size */
+}
+
+div.dashboard-page-card > .card-body > .card-subtitle {
+    font-size: 1rem; /* Set h6 size */
+    color: #6c757d; /* Set text-muted color */
+}
+
+/* Payments page */
+.table thead th {
+    vertical-align: middle;
+}
+
+.table tbody td {
+    white-space: nowrap;
+}

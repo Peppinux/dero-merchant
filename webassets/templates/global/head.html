@@ -1,0 +1,16 @@
+{{define "head"}}
+    {{template "globalMetaTags"}}
+    
+    {{if .}}
+        <title>{{.}} | DERO Merchant</title>
+    {{else}}
+        <title>DERO Merchant</title>
+    {{end}}
+
+    {{template "favicon"}}
+
+    {{template "bootstrapCSS"}}
+    {{template "fontAwesomeCSS"}}
+
+    {{template "globalCSS"}}
+{{end}}

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{template "globalMetaTags"}}
+
+    <title>Pay | DERO Merchant</title>
+
+    <link rel="icon" type="image/png" href="/static/favicon/favicon-32x32.png">
+
+    {{template "bootstrapCSS"}}
+    {{template "fontAwesomeCSS"}}
+
+    <link rel="stylesheet" href="/static/css/pay.css">
+</head>
+<body class="bg-primary">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xl-6 col-lg-8 col-md-10 mx-auto bg-light">
+                <header class="pt-3 d-flex flex-row flex-wrap align-items-center justify-content-between">
+                    <img class="mb-1" src="/static/img/header_logo.png" alt="DERO Merchant Header Logo">
+
+                    <small class="px-2 text-muted">You are sending a payment to <strong class="d-inline">{{.StoreTitle}} asd asd asda sdasdasdasd asd</strong></small>
+                </header>
+
+                <hr>
+
+                <main class="px-2 pb-3">
+                    <h1 class="mb-3 h4 text-muted font-weight-light">Payment details</h1>
+
+                    <div class="d-flex flex-column">
+                        <div class="d-flex flex-row flex-wrap">
+                            <span class="mr-1 text-muted">Payment ID:</span>
+                            <span class="text-break">{{.PaymentInfo.PaymentID}}</span>
+                        </div>
+                        <div class="d-flex flex-row flex-wrap">
+                            <span class="mr-1 text-muted">Total:</span>
+                            <span>{{.PaymentInfo.CurrencyAmount}} {{.PaymentInfo.Currency}}</span>
+                        </div>
+                        {{if not (eq .PaymentInfo.Currency "DERO")}}
+                            <div class="d-flex flex-row flex-wrap">
+                                <span class="mr-1 text-muted">Exchange Rate:</span>
+                                <span>1 DERO = {{.PaymentInfo.ExchangeRate}} {{.PaymentInfo.Currency}} <small class="text-muted font-weight-light">(Conversion rate provided by <a class="text-muted" href="https://api.coingecko.com/api/v3/simple/price?ids=dero&vs_currencies={{.PaymentInfo.Currency}}" target="_blank" rel="noopener noreferrer"><i class="fas fa-sm fa-external-link-alt"></i> CoinGecko API</a>)</small></span>
+                            </div>
+                            <div class="d-flex flex-row flex-wrap">
+                                <span class="mr-1 text-muted">Total due:</span>
+                                <span>{{.PaymentInfo.DeroAmount}} DERO</span>
+                            </div>
+                        {{end}}
+
+                        {{$statusColor := ""}}
+                        {{if eq .PaymentInfo.Status "pending"}}
+                            {{$statusColor = "text-primary"}}
+                        {{else if eq .PaymentInfo.Status "paid"}}
+                            {{$statusColor = "text-success"}}
+                        {{else if eq .PaymentInfo.Status "expired"}}
+                            {{$statusColor = "text-secondary"}}
+                        {{else if eq .PaymentInfo.Status "error"}}
+                            {{$statusColor = "text-danger"}}
+                        {{end}}
+                        
+                        <div class="d-flex flex-row flex-wrap">
+                            <span class="mr-1 text-muted">Status:</span>
+                            <span id="status" class="{{$statusColor}} text-capitalize font-weight-bold">{{.PaymentInfo.Status}}</span>
+                        </div>
+
+                        {{if eq .PaymentInfo.Status "pending"}}
+                            <div class="toast show mt-4">
+                                <div class="toast-header">
+                                    <span class="mr-auto">Finalize the payment</span>
+                                    <small>~<span id="minutes-left">{{.PaymentInfo.TTL}}</span> minutes left</small>
+                                </div>
+                                <div class="toast-body">
+                                    <p class="font-weight-light">
+                                        Send: <strong class="font-weight-bold"><span id="amount">{{.PaymentInfo.DeroAmount}}</span> DERO</strong> <button class="btn-copy btn btn-sm rounded-circle" data-clipboard-target="#amount" title="Copy" type="button"><i class="far fa-copy"></i></button>
+                                        <br>
+                                        To Integrated Address: <strong class="text-break font-weight-bold"><span id="iaddr">{{.PaymentInfo.IntegratedAddress}}</span></strong> <button class="btn-copy btn btn-sm rounded-circle" data-clipboard-target="#iaddr" title="Copy" type="button"><i class="far fa-copy"></i></button>
+                                    </p>
+
+                                    <div id="qrcode" class="mb-4"></div>
+                                    
+                                    <a href="https://wallet.dero.io/" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt"></i> Web Wallet</a>
+                                </div>
+                            </div>
+                        {{end}}
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    {{template "bootstrapDeps"}}
+
+    {{if eq .PaymentInfo.Status "pending"}}
+        <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
+
+        <script>const paymentID = {{.PaymentInfo.PaymentID}}</script>
+        <script src="/static/js/pay.js" defer></script>
+    {{end}}
+</body>
+</html>

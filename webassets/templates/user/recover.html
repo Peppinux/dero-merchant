@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{template "head" "Recover Account"}}
+</head>
+<body class="bg-primary">
+    {{template "header"}}
+    
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-center font-weight-light">Recover Account</h5>
+
+                            <form method="POST">
+                                <div class="form-group">
+                                    <label for="username">Recover Token</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-fingerprint"></i></span>
+                                        </div>
+                                        {{if or .Errors.Token .Errors.TokenExpired}}
+                                            <input type="text" class="form-control is-invalid" id="token" name="token" placeholder="Recover token" minlength="64" maxlength="64" required value="{{.Fields.Token}}">
+                                        {{else}}
+                                            <input type="text" class="form-control" id="token" name="token" placeholder="Recover token" minlength="64" maxlength="64" required value="{{.Fields.Token}}">
+                                        {{end}}
+                                        {{if .Errors.Token}}
+                                            <div class="invalid-feedback">
+                                                Invalid recover token. <a href="/user/forgot_password">Require a new one</a>.
+                                            </div>
+                                        {{end}}
+                                        {{if .Errors.TokenExpired}}
+                                            <div class="invalid-feedback">
+                                                Recover token expired. <a href="/user/forgot_password">Require a new one</a>.
+                                            </div>
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                               <div class="form-group">
+                                    <label for="email">Your email address</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-at"></i></span>
+                                        </div>
+                                        {{if .Errors.Email}}
+                                            <input type="email" class="form-control is-invalid" id="email" name="email" placeholder="Email" minlength="8" maxlength="64" required value="{{.Fields.Email}}">
+                                            <div class="invalid-feedback">
+                                                Email needs to be between 8 and 64 characters long.
+                                            </div>
+                                        {{else}}
+                                            <input type="email" class="form-control" id="email" name="email" placeholder="Email" minlength="8" maxlength="64" required value="{{.Fields.Email}}">
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="password">New Password</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-unlock"></i></span>
+                                        </div>
+                                        {{if .Errors.Password}}
+                                            <input type="password" class="form-control is-invalid" id="password" name="password" placeholder="Password" minlength="8" maxlength="64" required>
+                                            <div class="invalid-feedback">
+                                                Password needs to be between 8 and 64 characters long.
+                                            </div>    
+                                        {{else}}
+                                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" minlength="8" maxlength="64" required>
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        </div>
+                                        {{if or .Errors.ConfirmPassword .Errors.PasswordMatch}}
+                                            <input type="password" class="form-control is-invalid" id="confirm-password" name="confirm-password" placeholder="Confirm Password" minlength="8" maxlength="64" required>
+                                        {{else}}
+                                            <input type="password" class="form-control" id="confirm-password" name="confirm-password" placeholder="Confirm Password" minlength="8" maxlength="64" required>
+                                        {{end}}
+                                        {{if .Errors.ConfirmPassword}}
+                                            <div class="invalid-feedback">
+                                                Confirm Password needs to be between 8 and 64 characters long.
+                                            </div>
+                                        {{end}}
+                                        {{if .Errors.PasswordMatch}}
+                                            <div class="invalid-feedback">
+                                                Passwords don't match.
+                                            </div>
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-block btn-primary rounded-pill mt-4 text-uppercase font-weight-bold" {{if .Success}}disabled{{end}}>Reset Password</button>
+                            </form>
+
+                            {{if .Success}}
+                                <div class="alert alert-success mt-4" role="alert">
+                                    Your password has been reset successfully. You can <a href="/user/signin" class="alert-link">Sign In</a> now.
+                                </div>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    {{template "bootstrapDeps"}}
+</body>
+</html>

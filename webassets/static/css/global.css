@@ -1,0 +1,10 @@
+body {
+    color: #333;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
+    /* Space from fixed header navbar */
+    padding-top: 66px;
+}
+
+nav .navbar-brand img {
+    height: 40px;
+}

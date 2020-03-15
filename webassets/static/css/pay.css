@@ -1,0 +1,29 @@
+body {
+    color: #383838;
+    text-shadow: 1px 1px 0 rgba(153, 95, 95, 0.05);
+    min-height: 100vh;
+}
+
+div.container-fluid, div.container-fluid div.row {
+    min-height: inherit;
+}
+
+header img {
+    max-height: 40px;
+}
+
+.toast {
+    max-width: 100%;
+}
+
+.toast.blurred {
+    opacity: 0.25;
+}
+
+.toast .toast-body p {
+    font-size: 1.15rem;
+}
+
+.toast .toast-body p strong {
+    font-size: 1.05rem;
+}

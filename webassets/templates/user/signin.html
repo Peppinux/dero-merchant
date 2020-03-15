@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{template "head" "Sign In"}}
+</head>
+<body class="bg-primary">
+    {{template "header"}}
+    
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-center font-weight-light">Sign In</h5>
+
+                            <form method="POST">
+                                <div class="form-group">
+                                    <label for="username">Username or email</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        </div>
+                                        {{if or .Errors.Username .Errors.NotVerified}}
+                                            <input type="text" class="form-control is-invalid" id="username" name="username" placeholder="Username or email" maxlength="64" required value="{{.Fields.Username}}">
+                                        {{else}}
+                                            <input type="text" class="form-control" id="username" name="username" placeholder="Username or email" maxlength="64" required value="{{.Fields.Username}}">
+                                        {{end}}
+                                        {{if .Errors.Username}}
+                                            <div class="invalid-feedback">
+                                                Username/Email cannot be empty or more than 64 characters long.
+                                            </div>
+                                        {{end}}
+                                        {{if .Errors.NotVerified}}
+                                            <div class="invalid-feedback">
+                                                Your email is not verified. Check your inbox or <a href="/user/new_verification_token">require a new verification link</a>.
+                                            </div>
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-unlock-alt"></i></span>
+                                        </div>
+                                        {{if or .Errors.Password .Errors.NoMatch}}
+                                            <input type="password" class="form-control is-invalid" id="password" name="password" placeholder="Password" minlength="8" maxlength="64" required>
+                                        {{else}}
+                                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" minlength="8" maxlength="64" required>
+                                        {{end}}
+                                        {{if .Errors.Password}}
+                                            <div class="invalid-feedback">
+                                                Password needs to be between 8 and 64 characters long.
+                                            </div>
+                                        {{end}}
+                                        {{if .Errors.NoMatch}}
+                                            <div class="invalid-feedback">
+                                                Invalid username/email or password.
+                                            </div>
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="remember" name="remember" {{.Fields.RememberMe}}>
+                                    <label class="custom-control-label" for="remember">Remember me</label>
+                                </div>
+
+                                <button type="submit" class="btn btn-block btn-primary rounded-pill mt-3 text-uppercase font-weight-bold">Sign In</button>
+                            </form>
+
+                            <a href="/user/forgot_password" class="card-link d-block mt-3">Forgot password?</a>
+
+                            <p class="card-text mt-2">Don't own an account yet? <a href="/user/signup">Sign Up</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    {{template "bootstrapDeps"}}
+</body>
+</html>

@@ -1,0 +1,13 @@
+body {
+    padding-top: 0;
+}
+
+main {
+    padding-top: 66px; /* Override body padding to fit background image */
+    height: 100vh;
+    min-height: 600px;
+    background-image: url("/static/img/background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{template "head" "Verify Account"}}
+</head>
+<body class="bg-primary">
+    {{template "header" .}}
+    
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-center font-weight-light">Verify Account</h5>
+
+                            <form method="GET">
+                                <div class="form-group">
+                                    <label for="username">Verification Token</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-fingerprint"></i></span>
+                                        </div>
+                                        {{if .TokenExpired}}
+                                            <input type="text" class="form-control is-invalid" id="token" name="token" placeholder="Verification token" minlength="64" maxlength="64" required value="{{.Token}}">
+                                            <div class="invalid-feedback">
+                                                Verification token expired. <a href="/user/new_verification_token">Require a new one</a>.
+                                            </div>
+                                        {{else if gt (len .Token) 0}}
+                                            {{if not .Success}}
+                                                <input type="text" class="form-control is-invalid" id="token" name="token" placeholder="Verification token" minlength="64" maxlength="64" required value="{{.Token}}">
+                                                <div class="invalid-feedback">
+                                                    Invalid token. Your account may already be verified. Try to <a href="/user/signin">Sign In</a> or <a href="/user/new_verification_token">require a new one</a>.
+                                                </div>
+                                            {{else}}
+                                            <input type="text" class="form-control" id="token" name="token" placeholder="Verification token" minlength="64" maxlength="64" required value="{{.Token}}">
+                                            {{end}}
+                                        {{else}}
+                                            <input type="text" class="form-control" id="token" name="token" placeholder="Verification token" minlength="64" maxlength="64" required value="{{.Token}}">
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-block btn-primary rounded-pill mt-4 text-uppercase font-weight-bold" {{if .Success}}disabled{{end}}>Verify</button>
+                            </form>
+
+                            {{if .Success}}
+                                <div class="alert alert-success mt-4" role="alert">
+                                    Your account has been verified successfully. You can <a href="/user/signin" class="alert-link">Sign In</a> now.</p>
+                                </div>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    {{template "bootstrapDeps"}}
+</body>
+</html>

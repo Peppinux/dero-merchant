@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{template "head" "Sign Up"}}
+</head>
+<body class="bg-primary">
+    {{template "header"}}
+    
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-center font-weight-light">Sign Up</h5>
+
+                            <form method="POST">
+                                <div class="form-group">
+                                    <label for="username">Username</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        </div>
+                                        {{if or .Errors.Username .Errors.UniqueUsername}}
+                                            <input type="text" class="form-control is-invalid" id="username" name="username" placeholder="Username" maxlength="16" required value="{{.Fields.Username}}">
+                                        {{else}}
+                                            <input type="text" class="form-control" id="username" name="username" placeholder="Username" maxlength="16" required value="{{.Fields.Username}}">
+                                        {{end}}
+                                        {{if .Errors.Username}}
+                                            <div class="invalid-feedback">
+                                                Username cannot be empty or more than 16 characters long.
+                                            </div>
+                                        {{end}}
+                                        {{if .Errors.UniqueUsername}}
+                                            <div class="invalid-feedback">
+                                                Username not available.
+                                            </div>
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="email">Email address</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-at"></i></span>
+                                        </div>
+                                        {{if or .Errors.Email .Errors.UniqueEmail}}
+                                            <input type="email" class="form-control is-invalid" id="email" name="email" placeholder="Email" minlength="8" maxlength="64" required value="{{.Fields.Email}}">
+                                        {{else}}
+                                            <input type="email" class="form-control" id="email" name="email" placeholder="Email" minlength="8" maxlength="64" required value="{{.Fields.Email}}">
+                                        {{end}}
+                                        {{if .Errors.Email}}
+                                            <div class="invalid-feedback">
+                                                Email needs to be between 8 and 64 characters long.
+                                            </div>
+                                        {{end}}
+                                        {{if .Errors.UniqueEmail}}
+                                            <div class="invalid-feedback">
+                                                Email not available.
+                                            </div>
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-unlock"></i></span>
+                                        </div>
+                                        {{if .Errors.Password}}
+                                            <input type="password" class="form-control is-invalid" id="password" name="password" placeholder="Password" minlength="8" maxlength="64" required>
+                                            <div class="invalid-feedback">
+                                                Password needs to be between 8 and 64 characters long.
+                                            </div>    
+                                        {{else}}
+                                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" minlength="8" maxlength="64" required>
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        </div>
+                                        {{if or .Errors.ConfirmPassword .Errors.PasswordMatch}}
+                                            <input type="password" class="form-control is-invalid" id="confirm-password" name="confirm-password" placeholder="Confirm Password" minlength="8" maxlength="64" required>
+                                        {{else}}
+                                            <input type="password" class="form-control" id="confirm-password" name="confirm-password" placeholder="Confirm Password" minlength="8" maxlength="64" required>
+                                        {{end}}
+                                        {{if .Errors.ConfirmPassword}}
+                                            <div class="invalid-feedback">
+                                                Confirm Password needs to be between 8 and 64 characters long.
+                                            </div>
+                                        {{end}}
+                                        {{if .Errors.PasswordMatch}}
+                                            <div class="invalid-feedback">
+                                                Passwords don't match.
+                                            </div>
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-block btn-primary rounded-pill mt-4 text-uppercase font-weight-bold" {{if .Success}}disabled{{end}}>Sign Up</button>
+                            </form>
+
+                            {{if .Success}}
+                                <div class="alert alert-success mt-4" role="alert">
+                                    Welcome to DERO Merchant, <strong>{{.Fields.Username}}</strong>. A verification link required to <a href="/user/signin" class="alert-link">Sign In</a> will be sent to your email address <strong>{{.Fields.Email}}</strong> shortly.
+                                </div>
+                            {{else}}
+                                <p class="card-text mt-3">Already own an account? <a href="/user/signin">Sign In</a></p>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    {{template "bootstrapDeps"}}
+</body>
+</html>

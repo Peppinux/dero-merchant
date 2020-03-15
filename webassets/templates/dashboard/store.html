@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{template "head" .Store.Title}}
+    
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+
+    <script>const storeID = {{.Store.ID}}</script>
+</head>
+<body>
+    {{template "header" .}}
+
+    <div class="container-fluid">
+        <div class="row">
+            {{template "sidebar" .}}
+
+            <div class="col-lg-10 col-md-9 col-sm-8 col-10">
+                <div class="card dashboard-page-card">
+                    <div class="card-body">
+                        <h1 class="card-title">{{.Store.Title}}</h1>
+
+                        <p class="card-text">
+                            <form id="edit-viewkey">
+                                <div class="form-group row">
+                                    <label for="viewkey" class="col-auto col-md-2 col-form-label font-weight-bold">Wallet View Key</label>
+                                    <div class="col-md-8">
+                                        <button class="btn btn-sm btn-secondary my-1" type="button" data-toggle="collapse" data-target="#viewkey-editor" aria-expanded="false" aria-controls="viewkey-editor">
+                                            <i class="fas fa-eye"></i> Toggle
+                                        </button>
+
+                                        <div class="collapse" id="viewkey-editor">
+                                            <input type="text" readonly class="form-control-plaintext" aria-describedby="viewkey-help" id="new-viewkey" name="new-viewkey" placeholder="Wallet View Key" minlength="128" maxlength="128" required value="{{.Store.WalletViewKey}}">
+                                            <div class="invalid-feedback"></div>
+                                            <button class="btn btn-sm btn-light rounded-pill my-2 toggle-editor-btn" type="button">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-light rounded-pill d-none submit-btn" type="submit">
+                                                <i class="fas fa-edit"></i> Submit
+                                            </button>
+                                            <div class="alert alert-success my-2 d-none" role="alert">
+                                                Wallet View Key edited successfully.
+                                            </div>
+                                            <small id="viewkey-help" class="form-text text-muted">
+                                                The Wallet View Key of the DERO Wallet you want to receive the payments to. It must be 128 characters long. It can be retrieved by executing the command <code>4) Display Watch-able View only wallet key</code> inside the Wallet CLI. 
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="row">
+                                <div class="col-auto col-md-2 col-form-label font-weight-bold">
+                                    <label>API Key/Secret Key</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <button class="btn btn-sm btn-secondary my-1" type="button" data-toggle="collapse" data-target="#store-keys" aria-expanded="false" aria-controls="store-keys">
+                                        <i class="fas fa-eye"></i> Toggle
+                                    </button>
+
+                                    <div class="collapse py-2" id="store-keys">
+                                        <p><strong>API Key:</strong> <samp id="api-key">{{.Store.APIKey}}</samp></p>
+                                        <p><strong>Secret Key:</strong> <samp id="secret-key">{{.Store.SecretKey}}</samp></p>
+                                        <small class="text-muted d-block mb-3">
+                                            Your store's unique keys used to authenticate requests to the DERO Merchant API.
+                                        </small>
+                                        <button class="btn btn-sm btn-light rounded-pill" id="btn-new-store-keys" type="button">
+                                            <i class="fas fa-sync-alt"></i> Generate new store keys
+                                        </button>
+                                        <div class="alert my-2 d-none" role="alert"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-auto col-md-2 col-form-label font-weight-bold">
+                                    <label>Webhook</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <form id="edit-webhook">
+                                        <label for="new-webhook" class="font-weight-bold">Webhook URL</label>
+                                        <input type="url" readonly class="form-control-plaintext" aria-describedby="webhook-help" id="new-webhook" name="new-webhook" placeholder="Webhook URL" value="{{.Store.Webhook}}">
+                                        <div class="invalid-feedback"></div>
+                                        <button class="btn btn-sm btn-light rounded-pill my-2 toggle-editor-btn" type="button">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-light rounded-pill d-none submit-btn" type="submit">
+                                            <i class="fas fa-edit"></i> Submit
+                                        </button>
+                                        <div class="alert alert-success my-2 d-none" role="alert">
+                                            Webhook URL edited successfully.
+                                        </div>
+                                        <small id="webhook-help" class="form-text text-muted">
+                                            The URL of the <a href="/docs#section/Webhook">Webhook</a> you want to receive payments update events on.
+                                        </small>
+                                    </form>
+
+                                    <button class="btn btn-sm btn-secondary my-3" type="button" data-toggle="collapse" data-target="#webhook-secret-key-collapse" aria-expanded="false" aria-controls="webhook-secret-key-collapse">
+                                        <i class="fas fa-eye"></i> Toggle Webhook Secret Key
+                                    </button>
+
+                                    <div class="collapse py-2" id="webhook-secret-key-collapse">
+                                        <p><strong>Webhook Secret Key:</strong> <samp id="webhook-secret-key">{{.Store.WebhookSecretKey}}</samp></p>
+                                        <small class="text-muted d-block mb-3">
+                                            Secret Key used by DERO Merchant to sign requests sent to your Webhook URL.
+                                        </small>
+                                        <button class="btn btn-sm btn-light rounded-pill" id="btn-new-webhook-secret-key" type="button">
+                                            <i class="fas fa-sync-alt"></i> Generate new Webhook Secret Key
+                                        </button>
+                                        <div class="alert my-2 d-none" role="alert"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <a class="btn btn-primary text-uppercase font-weight-bold" href="/dashboard/stores/view/{{.Store.ID}}/payments">
+                                        <i class="fas fa-receipt"></i> Show payments
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-4" id="remove-store">
+                                    <button class="btn btn-danger text-uppercase font-weight-bold" type="button">
+                                        <i class="fas fa-trash"></i> Remove store
+                                    </button>
+                                    <div class="alert alert-danger my-2 d-none" role="alert"></div>
+                                </div>
+                            </div>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{template "bootstrapDeps"}}
+
+    <script src="/static/js/store.js" defer></script>
+</body>
+</html>

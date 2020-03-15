@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{template "head" "Internal Server Error"}}
+</head>
+<body>
+    {{template "header"}}
+    
+    <section class="mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col text-center">
+                    <h1 class="display-4 text-dark font-weight-bold"><i class="fas fa-bug"></i> 500 Internal Server Error</h1>
+                    <p class="h3">Go back to the <a href="/">homepage</a>.</p>
+                    <p class="h5"><a href="mailto:merchant@dero.io">Report it</a> to the administrators.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    {{template "bootstrapDeps"}}
+</body>
+</html>
