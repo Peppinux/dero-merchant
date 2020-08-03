@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -62,9 +63,10 @@ func (w *Webhook) SendPaymentUpdateEvent(paymentID string, newStatus string) err
 	req.Header.Set("X-Signature", bodySignatureHex)
 
 	httpClient := &http.Client{
-		Timeout: time.Millisecond, // Don't need a response
+		Timeout: time.Second, // Don't need a response
 	}
-	httpClient.Do(req)
+	_, err = httpClient.Do(req)
+	log.Println("err sopra", err)
 
 	return nil
 }
