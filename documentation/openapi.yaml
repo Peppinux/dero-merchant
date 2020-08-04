@@ -42,7 +42,7 @@ info:
 
       - [NodeJS](https://github.com/peppinux/dero-merchant-node-sdk)
 
-      - [Python (Work In Progress)](https://github.com/peppinux/dero-merchant-python-sdk)
+      - [Python](https://github.com/peppinux/dero-merchant-python-sdk)
 
       - [PHP](https://github.com/peppinux/dero-merchant-php-sdk)
 
@@ -401,7 +401,7 @@ paths:
                       message: "Invalid Param 'amount': required float"
         '500':
           $ref: '#/components/responses/InternalServerError'
-      x-code-samples:
+      x-codeSamples:
         - lang: 'cURL'
           source: |
             # EXAMPLE: Create 10 DERO Payment
@@ -470,6 +470,31 @@ paths:
               .catch(err => {
                 console.error(err);
               });
+        - lang: 'Python'
+          source: |
+            try:
+                payment = dm_client.create_payment("DERO", 10)
+
+                print(payment)
+                """
+                    Dictionary
+                    {
+                        'paymentID': '9ad7fd4ccd85035b30bb8f3f4bea058d50fb38c6b12aca83bedc2bbc21a3d1b1',
+                        'status': 'pending',
+                        'currency': 'DERO',
+                        'currencyAmount': 10,
+                        'exchangeRate': 1,
+                        'deroAmount': '10.000000000000',
+                        'atomicDeroAmount': 10000000000000,
+                        'integratedAddress': 'dETin8HwLs94N6j8zASZjD8htBbQTkhUuicZEYKBG6zQENd8mrhopv3YqaeP3Q9q1RMLHX3PvF4F4Xy1cN3Rndq7daiU3kG58ZaPFPqhm3i2KCg9Jc2nRSb3n8A8NFpz9mWp7D4kJcC2dY',
+                        'creationTime': '2020-08-02T22:14:56.119235Z',
+                        'ttl': 60
+                    }
+                """
+            except deromerchant.APIError as api_err:
+                # Handle API Error
+            except Exception as err:
+                # Handle error
         - lang: 'PHP'
           source: |
             try
@@ -622,7 +647,7 @@ paths:
                   message: Payment not found
         '500':
           $ref: '#/components/responses/InternalServerError'
-      x-code-samples:
+      x-codeSamples:
         - lang: 'cURL'
           source: |
             # EXAMPLE: Get Payment ID 44ebf4c075d33cecb6523798ef85f6f7bd4eff73c2fcf7747cd36a605b2f8758
@@ -692,6 +717,32 @@ paths:
               .catch(err => {
                 console.error(err);
               });
+        - lang: 'Python'
+          source: |
+            try:
+                payment_id = "9ad7fd4ccd85035b30bb8f3f4bea058d50fb38c6b12aca83bedc2bbc21a3d1b1"
+                payment = dm_client.get_payment(payment_id)
+
+                print(payment)
+                """
+                    Dictionary
+                    {
+                        'paymentID': '9ad7fd4ccd85035b30bb8f3f4bea058d50fb38c6b12aca83bedc2bbc21a3d1b1',
+                        'status': 'pending',
+                        'currency': 'DERO',
+                        'currencyAmount': 10,
+                        'exchangeRate': 1,
+                        'deroAmount': '10.000000000000',
+                        'atomicDeroAmount': 10000000000000,
+                        'integratedAddress': 'dETin8HwLs94N6j8zASZjD8htBbQTkhUuicZEYKBG6zQENd8mrhopv3YqaeP3Q9q1RMLHX3PvF4F4Xy1cN3Rndq7daiU3kG58ZaPFPqhm3i2KCg9Jc2nRSb3n8A8NFpz9mWp7D4kJcC2dY',
+                        'creationTime': '2020-08-02T22:14:56.119235Z',
+                        'ttl': 55
+                    }
+                """
+            except deromerchant.APIError as api_err:
+                # Handle API Error
+            except Exception as err:
+                # Handle error
         - lang: 'PHP'
           source: |
             try
@@ -820,7 +871,7 @@ paths:
                   message: Payments not found
         '500':
           $ref: '#/components/responses/InternalServerError'
-      x-code-samples:
+      x-codeSamples:
         - lang: 'cURL'
           source: |
             # EXAMPLE: Get payments with 3 specific Payment IDs
@@ -926,6 +977,46 @@ paths:
               .catch(err => {
                 console.error(err);
               });
+        - lang: 'Python'
+          source: |
+            try:
+                payment_ids = ["9ad7fd4ccd85035b30bb8f3f4bea058d50fb38c6b12aca83bedc2bbc21a3d1b1", "7d3dadd862344b2792a591d92391e49fdb15c3b0db6fe73b901000c54c97922c"]
+                payments = dm_client.get_payments(payment_ids)
+
+                print(payments)
+                """
+                    List of dictionaries
+                    [
+                        {
+                            'paymentID': '7d3dadd862344b2792a591d92391e49fdb15c3b0db6fe73b901000c54c97922c',
+                            'status': 'error',
+                            'currency': 'USD',
+                            'currencyAmount': 10,
+                            'exchangeRate': 1.18,
+                            'deroAmount': '8.474576271186',
+                            'atomicDeroAmount': 8474576271186,
+                            'integratedAddress': 'dETin8HwLs94N6j8zASZjD8htBbQTkhUuicZEYKBG6zQENd8mrhopv3YqaeP3Q9q1RMLHX3PvF4F4Xy1cN3Rndq7daiTzQYtH859kKAUCwhfgvRQM3BVMsaEvKibuCxfRoMD6k9MK7wtBk',
+                            'creationTime': '2020-08-02T14:59:54.259882Z',
+                            'ttl': 0
+                        },
+                        {
+                            'paymentID': '9ad7fd4ccd85035b30bb8f3f4bea058d50fb38c6b12aca83bedc2bbc21a3d1b1',
+                            'status': 'pending',
+                            'currency': 'DERO',
+                            'currencyAmount': 10,
+                            'exchangeRate': 1,
+                            'deroAmount': '10.000000000000',
+                            'atomicDeroAmount': 10000000000000,
+                            'integratedAddress': 'dETin8HwLs94N6j8zASZjD8htBbQTkhUuicZEYKBG6zQENd8mrhopv3YqaeP3Q9q1RMLHX3PvF4F4Xy1cN3Rndq7daiU3kG58ZaPFPqhm3i2KCg9Jc2nRSb3n8A8NFpz9mWp7D4kJcC2dY',
+                            'creationTime': '2020-08-02T22:14:56.119235Z',
+                            'ttl': 52
+                        }
+                    ]
+                """
+            except deromerchant.APIError as api_err:
+                # Handle API Error
+            except Exception as err:
+                # Handle error
         - lang: 'PHP'
           source: |
             try
@@ -1242,7 +1333,7 @@ paths:
                       message: "Query param 'currency' not valid. Allowed values: (empty) or max 4 characters"
         '500':
           $ref: '#/components/responses/InternalServerError'
-      x-code-samples:
+      x-codeSamples:
         - lang: 'cURL'
           source: |
             # EXAMPLE: Get pending payments
@@ -1287,6 +1378,23 @@ paths:
               .catch(err => {
                 console.error(err);
               });
+        - lang: 'Python'
+          source: |
+            try:
+                res = dm_client.get_filtered_payments(
+                    limit=None,
+                    page=None,
+                    sort_by=None,
+                    order_by=None,
+                    filter_status=None,
+                    filter_currency=None
+                )
+
+                print(res) # Dictionary
+            except deromerchant.APIError as api_err:
+                # Handle API Error
+            except Exception as err:
+                # Handle error 
         - lang: 'PHP'
           source: |
             try
