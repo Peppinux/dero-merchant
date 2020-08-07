@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -66,7 +65,6 @@ func (w *Webhook) SendPaymentUpdateEvent(paymentID string, newStatus string) err
 		Timeout: time.Second, // Don't need a response
 	}
 	_, err = httpClient.Do(req)
-	log.Println("err sopra", err)
 
 	return nil
 }
