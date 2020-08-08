@@ -522,6 +522,32 @@ paths:
             {
                 // Handle exception.
             }
+        - lang: 'Ruby'
+          source: |
+            begin
+              payment = dm_client.create_payment("DERO", 10)
+              
+              puts(payment)
+            =begin
+              Hash
+              {
+                "paymentID"=>"ba5a517df8506a9f55b24d18bb66d316d8df6ed93376c6414c1876d7421764b9", 
+                "status"=>"pending", 
+                "currency"=>"DERO", 
+                "currencyAmount"=>10, 
+                "exchangeRate"=>1, 
+                "deroAmount"=>"10.000000000000", 
+                "atomicDeroAmount"=>10000000000000, 
+                "integratedAddress"=>"dETin8HwLs94N6j8zASZjD8htBbQTkhUuicZEYKBG6zQENd8mrhopv3YqaeP3Q9q1RMLHX3PvF4F4Xy1cN3Rndq7daiU7JSmXpBET9APnksErnJCXaBriPySALsG8JWrUt571tRDA4Q1Cb", 
+                "creationTime"=>"2020-08-07T14:10:13.775959Z", 
+                "ttl"=>60
+              }
+            =end
+            rescue DeroMerchant::APIError => api_err
+              # Handle API Error
+            rescue => exception
+              # Handle exception
+            end
   /payment/{payment_id}:
     get:
       tags:
@@ -771,6 +797,33 @@ paths:
             {
                 // Handle exception.
             }
+        - lang: 'Ruby'
+          source: |
+            begin
+              payment_id = "ba5a517df8506a9f55b24d18bb66d316d8df6ed93376c6414c1876d7421764b9"
+              payment = dm_client.get_payment(payment_id)
+              
+              puts(payment)
+            =begin
+              Hash
+              {
+                "paymentID"=>"ba5a517df8506a9f55b24d18bb66d316d8df6ed93376c6414c1876d7421764b9", 
+                "status"=>"pending", 
+                "currency"=>"DERO", 
+                "currencyAmount"=>10, 
+                "exchangeRate"=>1, 
+                "deroAmount"=>"10.000000000000", 
+                "atomicDeroAmount"=>10000000000000, 
+                "integratedAddress"=>"dETin8HwLs94N6j8zASZjD8htBbQTkhUuicZEYKBG6zQENd8mrhopv3YqaeP3Q9q1RMLHX3PvF4F4Xy1cN3Rndq7daiU7JSmXpBET9APnksErnJCXaBriPySALsG8JWrUt571tRDA4Q1Cb", 
+                "creationTime"=>"2020-08-07T14:10:13.775959Z", 
+                "ttl"=>55
+              }
+            =end
+            rescue DeroMerchant::APIError => api_err
+              # Handle API Error
+            rescue => exception
+              # Handle exception
+            end
   /payments:
     post:
       tags:
@@ -1064,6 +1117,45 @@ paths:
             {
                 // Handle exception.
             }
+        - lang: 'Ruby'
+          source: |
+            begin
+              payment_ids = ["ba5a517df8506a9f55b24d18bb66d316d8df6ed93376c6414c1876d7421764b9", "95f28cb0a70a10f42e1e748d825cc72a110bae317205d6a4c1c74d8bf8927a24"]
+              payments = dm_client.get_payments(payment_ids)
+              
+              puts(payments)
+            =begin
+              Hashes
+              {
+                "paymentID"=>"ba5a517df8506a9f55b24d18bb66d316d8df6ed93376c6414c1876d7421764b9", 
+                "status"=>"pending", 
+                "currency"=>"DERO", 
+                "currencyAmount"=>10, 
+                "exchangeRate"=>1, 
+                "deroAmount"=>"10.000000000000", 
+                "atomicDeroAmount"=>10000000000000, 
+                "integratedAddress"=>"dETin8HwLs94N6j8zASZjD8htBbQTkhUuicZEYKBG6zQENd8mrhopv3YqaeP3Q9q1RMLHX3PvF4F4Xy1cN3Rndq7daiU7JSmXpBET9APnksErnJCXaBriPySALsG8JWrUt571tRDA4Q1Cb", 
+                "creationTime"=>"2020-08-07T14:10:13.775959Z", 
+                "ttl"=>51
+              }
+              {
+                "paymentID"=>"95f28cb0a70a10f42e1e748d825cc72a110bae317205d6a4c1c74d8bf8927a24", 
+                "status"=>"pending", 
+                "currency"=>"DERO", 
+                "currencyAmount"=>10, 
+                "exchangeRate"=>1, 
+                "deroAmount"=>"10.000000000000", 
+                "atomicDeroAmount"=>10000000000000, 
+                "integratedAddress"=>"dETin8HwLs94N6j8zASZjD8htBbQTkhUuicZEYKBG6zQENd8mrhopv3YqaeP3Q9q1RMLHX3PvF4F4Xy1cN3Rndq7daiU3CDnpe22gezRV3eibbGX4drSePTPo1ye8wrH2c6b6YwysZLssQ", 
+                "creationTime"=>"2020-08-07T14:14:38.441926Z", 
+                "ttl"=>56
+              }
+            =end
+            rescue DeroMerchant::APIError => api_err
+              # Handle API Error
+            rescue => exception
+              # Handle exception
+            end
     get:
       tags:
         - payment
@@ -1407,3 +1499,22 @@ paths:
             {
                 // Handle exception.
             }
+        - lang: 'Ruby'
+          source: |
+            begin
+              res = dm_client.get_filtered_payments({
+                  "limit" => int,
+                  "page" => int,
+                  "sort_by" => string,
+                  "order_by" => string,
+                  "filter_status" => string,
+                  "filter_currency" => string
+                }
+              )
+
+              puts(res) # Hash
+            rescue DeroMerchant::APIError => api_err
+              # Handle API Error
+            rescue => exception
+              # Handle exception
+            end
